@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Page, Text, useNavigate, Spinner } from "zmp-ui";
+import { Box, Text, Button, Page, useNavigate, Spinner, Icon, Sheet, Select, Input } from "zmp-ui";
 import Logo from "@/components/logo";
 import bg from "@/static/bg.svg";
 import { getCurrentUser, formatJoinDate, logout } from "@/services/auth";
@@ -23,6 +23,32 @@ function HomePage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Trạng thái cho modal tìm kiếm
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({
+    subject: "",
+    examType: "",
+    examName: "",
+  });
+  
+  // Dữ liệu mẫu cho các bộ lọc
+  const subjects = ["Tiếng Anh", "Toán", "Vật lý", "Hóa học", "Sinh học", "Ngữ văn", "Lịch sử", "Địa lý"];
+  const examTypes = ["Chứng chỉ", "Đại học", "THPT", "Ôn tập"];
+  const examNames = {
+    "Tiếng Anh": {
+      "Chứng chỉ": ["IELTS", "TOEIC", "TOEFL"],
+      "Đại học": ["Đại học Ngoại ngữ", "Đại học FPT"],
+      "THPT": ["THPT Quốc gia"],
+      "Ôn tập": ["Ngữ pháp cơ bản", "Từ vựng nâng cao"]
+    },
+    "Toán": {
+      "Đại học": ["Đại học Bách Khoa", "Đại học Tự nhiên"],
+      "THPT": ["THPT Quốc gia"],
+      "Ôn tập": ["Giải tích", "Đại số"]
+    }
+    // Có thể thêm dữ liệu cho các môn học khác
+  };
 
   // Get time of day for greeting
   const hour = new Date().getHours();
@@ -137,7 +163,10 @@ function HomePage() {
         {/* Quick actions */}
         <Text className="font-bold text-lg mb-3">Thao tác nhanh</Text>
         <Box className="grid grid-cols-3 gap-3">
-          <Box className="bg-white rounded-xl p-3 shadow-sm flex flex-col items-center justify-center">
+          <Box 
+            className="bg-white rounded-xl p-3 shadow-sm flex flex-col items-center justify-center"
+            onClick={() => setShowSearchModal(true)}
+          >
             <Box className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2">
               <Box className="text-blue-600 text-xl">🔍</Box>
             </Box>
@@ -211,6 +240,114 @@ function HomePage() {
       </Box>
 
       <Logo className="mx-auto my-4" />
+      
+      {/* Modal tìm kiếm bài thi */}
+      {/* Sử dụng Sheet thay vì Modal để tránh vấn đề chồng lấp */}
+      <Sheet
+        visible={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+        autoHeight
+        mask
+        handler
+        swipeToClose
+      >
+        <Box className="p-4 space-y-6">
+          {/* Tiêu đề */}
+          <Box className="flex justify-between items-center mb-4">
+            <Text className="text-lg font-bold">Tìm kiếm bài thi</Text>
+            <Button 
+              size="small" 
+              onClick={() => setShowSearchModal(false)}
+              className="p-1"
+            >
+              ✕
+            </Button>
+          </Box>
+          
+          {/* Các trường tìm kiếm */}
+          <Box className="space-y-2 mb-6">
+            <Text className="text-sm font-medium">Môn thi</Text>
+            <Select
+              placeholder="Chọn môn thi"
+              value={searchFilters.subject}
+              onChange={(value) => setSearchFilters(prev => ({
+                ...prev,
+                subject: value as string,
+                examType: "",
+                examName: ""
+              }))}
+              className="w-full"
+              style={{ zIndex: 1300 }} /* Tăng z-index cho select */
+            >
+              {subjects.map((subject) => (
+                <Select.Option key={subject} value={subject}>
+                  {subject}
+                </Select.Option>
+              ))}
+            </Select>
+          </Box>
+          
+          <Box className="space-y-2 mb-8">
+            <Text className="text-sm font-medium">Loại kì thi</Text>
+            <Select
+              placeholder="Chọn loại kì thi"
+              value={searchFilters.examType}
+              onChange={(value) => setSearchFilters(prev => ({
+                ...prev,
+                examType: value as string,
+                examName: ""
+              }))}
+              disabled={!searchFilters.subject}
+              className="w-full"
+              style={{ zIndex: 1200 }} /* Z-index thấp hơn select đầu tiên */
+            >
+              {examTypes.map((type) => (
+                <Select.Option key={type} value={type}>
+                  {type}
+                </Select.Option>
+              ))}
+            </Select>
+          </Box>
+          
+          <Box className="space-y-2 mb-8">
+            <Text className="text-sm font-medium">Kì thi</Text>
+            <Select
+              placeholder="Chọn kì thi"
+              value={searchFilters.examName}
+              onChange={(value) => setSearchFilters(prev => ({ ...prev, examName: value as string }))}
+              disabled={!searchFilters.subject || !searchFilters.examType}
+              className="w-full"
+              style={{ zIndex: 1100 }} /* Z-index thấp nhất */
+            >
+              {searchFilters.subject && searchFilters.examType && examNames[searchFilters.subject]?.[searchFilters.examType]?.map((name) => (
+                <Select.Option key={name} value={name}>
+                  {name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Box>
+          
+          <Box className="pt-4">
+            <Text className="text-xs text-gray-500">
+              Chọn các bộ lọc để tìm kiếm bài thi phù hợp với nhu cầu của bạn.
+            </Text>
+          </Box>
+          
+          {/* Nút tìm kiếm */}
+          <Box className="mt-6">
+            <Button 
+              fullWidth 
+              onClick={() => {
+                console.log("Tìm kiếm với bộ lọc:", searchFilters);
+                // Thực hiện tìm kiếm ở đây
+                setShowSearchModal(false);
+              }}
+            >
+              Tìm kiếm
+            </Button>
+          </Box>
+        </Box>
+      </Sheet>
     </Page>
   );
 }
