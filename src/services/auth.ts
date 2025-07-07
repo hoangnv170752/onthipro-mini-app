@@ -229,11 +229,17 @@ export const logout = async (): Promise<void> => {
 
 /**
  * Check if user is authenticated
- * @returns Boolean indicating if user has a valid token
+ * @returns Promise with boolean indicating if user has a valid token
  */
-export const isAuthenticated = (): boolean => {
-  const authStore = AuthStore.getInstance();
-  return !!authStore.getToken() && authStore.isInitialized();
+export const isAuthenticated = async (): Promise<boolean> => {
+  try {
+    const authStore = AuthStore.getInstance();
+    const token = await authStore.getToken();
+    return !!token && authStore.isInitialized();
+  } catch (error) {
+    console.error("Error checking authentication:", error);
+    return false;
+  }
 };
 
 /**

@@ -22,14 +22,37 @@ import ErrorBoundary from "@/components/error-boundary";
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated() && location.pathname !== "/login") {
-      // Redirect to login page if not authenticated
-      navigate("/login");
-    }
+    const checkAuthentication = async () => {
+      try {
+        setIsChecking(true);
+        // Check if user is authenticated - now async
+        const authenticated = await isAuthenticated();
+        if (!authenticated && location.pathname !== "/login") {
+          // Redirect to login page if not authenticated
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        // On error, allow access to prevent blank screens
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAuthentication();
   }, [navigate, location]);
+
+  // Show loading state while checking authentication
+  if (isChecking && location.pathname !== "/login") {
+    return (
+      <Box className="flex items-center justify-center min-h-screen">
+        <Text className="text-gray-500">Đang tải...</Text>
+      </Box>
+    );
+  }
 
   return <>{children}</>;
 };

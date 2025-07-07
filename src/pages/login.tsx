@@ -16,9 +16,19 @@ function LoginPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    if (isAuthenticated()) {
-      navigate("/");
-    }
+    const checkAuth = async () => {
+      try {
+        const authenticated = await isAuthenticated();
+        if (authenticated) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        // Don't redirect if there's an error checking auth
+      }
+    };
+    
+    checkAuth();
   }, [navigate]);
 
   const handleLogin = async () => {
