@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:"
+      content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://onthipro-backend.onrender.com"
     />
     <meta
       name="viewport"
@@ -14,12 +14,81 @@
     <meta name="theme-color" content="#007aff" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
-    <title>Zalo Mini App</title>
+    <title>Ôn Thi Pro</title>
+    <style>
+      /* Add fallback styles in case of loading issues */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      #app-loading {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f5f5f5;
+      }
+      #app-loading h2 {
+        color: #007aff;
+        margin-bottom: 20px;
+      }
+      #app-loading p {
+        color: #666;
+        margin: 10px 0;
+      }
+      #app-error {
+        display: none;
+        padding: 20px;
+        background-color: #fff3f3;
+        border: 1px solid #ffcaca;
+        border-radius: 8px;
+        margin: 20px;
+        color: #d32f2f;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
-    <!-- built script files will be auto injected -->
+    <!-- Loading screen -->
+    <div id="app-loading">
+      <h2>Ôn Thi Pro</h2>
+      <p>Đang tải ứng dụng...</p>
+      <div id="app-error"></div>
+    </div>
+    
+    <!-- App container -->
+    <div id="app" style="display: none;"></div>
+    
+    <!-- Error handling script -->
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('Global error:', message, error);
+        document.getElementById('app-error').style.display = 'block';
+        document.getElementById('app-error').innerText = 'Lỗi: ' + message;
+        return true;
+      };
+      
+      // Hide loading screen when app is ready
+      window.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM content loaded');
+      });
+      
+      // Show app and hide loading when fully loaded
+      window.onload = function() {
+        console.log('Window loaded');
+        setTimeout(function() {
+          var appElement = document.getElementById('app');
+          var loadingElement = document.getElementById('app-loading');
+          if (appElement && loadingElement) {
+            appElement.style.display = 'block';
+            loadingElement.style.display = 'none';
+          }
+        }, 1000); // Give the app a second to initialize
+      };
+    </script>
 
+    <!-- App entry point -->
     <script type="module" src="/src/app.ts"></script>
   </body>
 </html>
